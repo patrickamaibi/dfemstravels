@@ -275,6 +275,7 @@ body {
 
 .headline .gold-text {
   background: linear-gradient(135deg, #ffffff 10%, var(--gold-champagne) 50%, var(--gold-primary) 100%);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
