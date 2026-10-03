@@ -10,9 +10,12 @@
      Client Configuration
      ========================================================================== */
   const CONFIG = {
-    // Target Launch Date: YYYY-MM-DDTHH:mm:ss
-    targetLaunchDate: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-    
+    // Fixed launch moment: 10 October 2026, 00:00 in GMT+1 (West Africa Time).
+    // The "+01:00" offset pins this to the same instant for every visitor,
+    // so refreshing the page never restarts the countdown.
+    // Format: YYYY-MM-DDTHH:mm:ss+01:00
+    targetLaunchDate: '2026-10-10T00:00:00+01:00',
+
     // Set to false to hide the countdown section
     enableCountdown: true,
 
@@ -38,18 +41,24 @@
     const minutesEl = document.getElementById('minutes');
     const secondsEl = document.getElementById('seconds');
 
+    if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+
     const targetTime = new Date(CONFIG.targetLaunchDate).getTime();
+    let timerInterval = null;
+
+    function pad(value) {
+      return String(value).padStart(2, '0');
+    }
 
     function updateTimer() {
-      const now = new Date().getTime();
-      const difference = targetTime - now;
+      const difference = targetTime - Date.now();
 
       if (difference <= 0) {
         daysEl.textContent = '00';
         hoursEl.textContent = '00';
         minutesEl.textContent = '00';
         secondsEl.textContent = '00';
-        clearInterval(timerInterval);
+        if (timerInterval) clearInterval(timerInterval);
         return;
       }
 
@@ -58,14 +67,14 @@
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-      daysEl.textContent = String(days).padStart(2, '0');
-      hoursEl.textContent = String(hours).padStart(2, '0');
-      minutesEl.textContent = String(minutes).padStart(2, '0');
-      secondsEl.textContent = String(seconds).padStart(2, '0');
+      daysEl.textContent = pad(days);
+      hoursEl.textContent = pad(hours);
+      minutesEl.textContent = pad(minutes);
+      secondsEl.textContent = pad(seconds);
     }
 
     updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
+    timerInterval = setInterval(updateTimer, 1000);
   }
 
   /* ==========================================================================
@@ -99,7 +108,6 @@
       }
 
       // Button loading state
-      const originalBtnText = submitBtn.innerHTML;
       submitBtn.disabled = true;
       submitBtn.innerHTML = `
         <svg style="width: 14px; height: 14px; animation: spin 1s linear infinite;" viewBox="0 0 24 24" fill="none">
@@ -112,10 +120,10 @@
       // Always save to localStorage as a safety net for client handoff
       try {
         const savedSignups = JSON.parse(localStorage.getItem('dkingsfems_signups') || '[]');
-        savedSignups.push({ 
-          email, 
+        savedSignups.push({
+          email,
           timestamp: new Date().toISOString(),
-          routedTo: CONFIG.recipientEmail 
+          routedTo: CONFIG.recipientEmail
         });
         localStorage.setItem('dkingsfems_signups', JSON.stringify(savedSignups));
       } catch (err) {
